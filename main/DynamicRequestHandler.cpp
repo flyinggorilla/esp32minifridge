@@ -9,6 +9,7 @@
 #include "String.h"
 #include "WebClient.h"
 #include "Wifi.h"
+#include "FridgeController.h"
 #include "temperature.h"
 #include "wavdata.h"
 #include "MemoryDataStream.h"
@@ -21,6 +22,7 @@ extern Esp32MiniFridge esp32minifridge;
 extern I2SPlayer musicPlayer;
 extern Wifi wifi;
 extern Storage storage;
+extern FridgeController fridgeController;
 
 #define OTA_LATEST_FIRMWARE_JSON_URL "http://surpro5:9999/version.json" // testing with local go server
 #define OTA_LATEST_FIRMWARE_URL "http://surpro5:9999/esp32minifridge.bin"		// testing with local go server
@@ -71,6 +73,16 @@ bool DynamicRequestHandler::HandleApiRequest(std::list<TParam> &params, HttpResp
 		{
 			file = (*it).paramValue;
 			ESP_LOGI(tag, "gong playing file %s", file.c_str());
+		} else if ((*it).paramName == "fanhot") {
+			ESP_LOGI(tag, "fanhot");
+			long speed = (*it).paramValue.toInt();
+			if (speed > 0 ) {
+				ESP_LOGI(tag, "turning fan ON");
+				fridgeController.FanHot(true);
+			} else {
+				ESP_LOGI(tag, "turning fan OFF");
+				fridgeController.FanHot(false);
+			}
 		}
 		it++;
 	}

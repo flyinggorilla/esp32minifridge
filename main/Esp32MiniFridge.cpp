@@ -20,6 +20,7 @@
 #include "Config.h"
 #include "I2SPlayer.h"
 #include "Esp32MiniFridgeWebServer.h"
+#include "FridgeController.h"
 #include "Wifi.h"
 #include "Storage.h"
 #include "Url.h"
@@ -34,6 +35,7 @@ Esp32MiniFridgeWebServer webServer;
 Esp32MiniFridge esp32minifridge;
 Storage storage;
 Wifi wifi;
+FridgeController fridgeController;
 
 
 // Wav* wav = NULL;
@@ -103,6 +105,7 @@ void Esp32MiniFridge::Start() {
 	storage.Mount();
 
 	musicPlayer.init();
+	fridgeController.init();
 
 	mbButtonPressed = !gpio_get_level(GPIO_NUM_0);
 
