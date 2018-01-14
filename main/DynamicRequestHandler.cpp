@@ -112,23 +112,23 @@ bool DynamicRequestHandler::HandleApiRequest(std::list<TParam> &params, HttpResp
 				ESP_LOGW(tag, "invalid power command - use on/off or 0/1");
 			}
 		}
-
-		sBody = "{\r\n";
-		sBody += "\"power\"=";
-		sBody += fridgeController.GetPower();
-		sBody += ",\r\n";
-		sBody += "\"targettemperature\"=";
-		sBody += fridgeController.GetTargetTemperature();
-		sBody += ",\r\n";		
-		sBody += "\"actualtemperature\"=";
-		sBody += fridgeController.GetActualTemperature();
-		sBody += ",\r\n";		
-		sBody += "\"deadband\"=";
-		sBody += fridgeController.GetDeadBand();
-		sBody += "\r\n}";		
-
+		it++;
 	}
-	it++;
+	sBody = "{\r\n";
+	sBody += "\"power\"=";
+	sBody += fridgeController.GetPower();
+	sBody += ",\r\n";
+	sBody += "\"targettemperature\"=";
+	sBody += fridgeController.GetTargetTemperature();
+	sBody += ",\r\n";		
+	sBody += "\"actualtemperature\"=";
+	sBody += fridgeController.GetActualTemperature();
+	sBody += ",\r\n";		
+	sBody += "\"deadband\"=";
+	sBody += fridgeController.GetDeadBand();
+	sBody += "\r\n}";		
+
+
 
 	/*
 	if (play)

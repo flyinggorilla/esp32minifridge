@@ -19,9 +19,9 @@ static const char *LOGTAG = "fridge";
 /*
 * DS18B20 sensor (sparkfun cable uses black/red/white wires)
 *  The pinout for this sensor is as follows: RED=Vcc BLACK=GND WHITE=SIG
-*  RED: +5V
+*  RED: +3V output from Huzzah board (or 5V is ok)
 *  BLACK: GND
-*  WHITE: GPIO21 
+*  WHITE: GPIO21, pullup 4.7kOhm to 3V (NOT 5V!!!!)
 */
 
 #define MAX_DEVICES 2
@@ -96,54 +96,11 @@ void FridgeController::init(bool power, float targetTemperature)
     //------ init onewire -------------------------
 
     // Create a 1-Wire bus
-    owb_rmt_driver_info rmt_driver_info;
-    mOwb = owb_rmt_initialize(&rmt_driver_info, GPIO_DS18B20, RMT_CHANNEL_1, RMT_CHANNEL_0);
+
+    mOwb = owb_rmt_initialize(&mRmtDriverInfo, GPIO_DS18B20, RMT_CHANNEL_1, RMT_CHANNEL_0);
     owb_use_crc(mOwb, true); // enable CRC check for ROM code
 
-    // Find all connected devices
-    /*ESP_LOGI(LOGTAG, "find devices");
-    OneWireBus_ROMCode device_rom_codes[MAX_DEVICES]; // = {0};
-    memset(&device_rom_codes, 0, sizeof(device_rom_codes));
-    int num_devices = 0;
-    OneWireBus_SearchState search_state; // = {0};
-     memset(&device_rom_codes, 0, sizeof(search_state));
-
-
-    bool found = false;
-    owb_search_first(mOwb, &search_state, &found);
-    while (found)
-    {
-        char rom_code_s[17];
-        owb_string_from_rom_code(search_state.rom_code, rom_code_s, sizeof(rom_code_s));
-        ESP_LOGI(LOGTAG, "  %d : %s", num_devices, rom_code_s);
-        device_rom_codes[num_devices] = search_state.rom_code;
-        ++num_devices;
-        owb_search_next(mOwb, &search_state, &found);
-    }
-
-    ESP_LOGI(LOGTAG, "Found %d devices", num_devices);
-
-    //uint64_t rom_code = 0x0001162e87ccee28;  // pink
-    //uint64_t rom_code = 0xf402162c6149ee28;  // green
-    //uint64_t rom_code = 0x1502162ca5b2ee28;  // orange
-    //uint64_t rom_code = owb_read_rom(mOwb);
-
-    // Known ROM code (LSB first):
-
-    */
-
-    // ROM CODE OF Temperature Sensor 3b000006f247ee28
-    /*OneWireBus_ROMCode known_device;
-    known_device.fields.family[0] = (uint8_t)0x28;
-    known_device.fields.serial_number[0] = (uint8_t)0xee;
-    known_device.fields.serial_number[1] = (uint8_t)0x47;
-    known_device.fields.serial_number[2] = (uint8_t)0xf2;
-    known_device.fields.serial_number[3] = (uint8_t)0x06;
-    known_device.fields.serial_number[4] = (uint8_t)0x00;
-    known_device.fields.serial_number[5] = (uint8_t)0x00;
-    known_device.fields.crc[0] = (uint8_t)0x00;  */
-
-    uint64_t rom_code = 0x3b000006f247ee28; // sparkfun DS18B20 sensor
+    /*uint64_t rom_code = 0x3b000006f247ee28; // sparkfun DS18B20 sensor
     OneWireBus_ROMCode known_device;
     memcpy(&known_device, &rom_code, sizeof(rom_code));
 
@@ -153,37 +110,19 @@ void FridgeController::init(bool power, float targetTemperature)
     owb_verify_rom(mOwb, known_device, &is_present);
     ESP_LOGI(LOGTAG, "Device %s is %s", rom_code_s, is_present ? "present" : "not present");
 
-    ESP_LOGI(LOGTAG, "Single device optimisations enabled");
+    ESP_LOGI(LOGTAG, "Single device optimisations enabled");*/
 
-    DS18B20_Info ds18b20_info;
-    ds18b20_init_solo(&ds18b20_info, mOwb); // only one device on bus
-    ds18b20_use_crc(&ds18b20_info, true);   // enable CRC check for temperature readings
-    ds18b20_set_resolution(&ds18b20_info, DS18B20_RESOLUTION);
+    ds18b20_init_solo(&mDs18b20, mOwb); // only one device on bus
+    ds18b20_use_crc(&mDs18b20, true);   // enable CRC check for temperature readings
+    ds18b20_set_resolution(&mDs18b20, DS18B20_RESOLUTION);
 
-    /*
-    // Create a DS18B20 device on the 1-Wire bus
-
-    for (int i = 0; i < MAX_DEVICES; ++i)
+    /*while (1)
     {
-        devices[i] = &(devices_static[i]);
-    }
-
-    for (int i = 0; i < num_devices; ++i)
-    {
-        DS18B20_Info *ds18b20_info = devices[i];
-
-        if (num_devices == 1)
-        {
-            ESP_LOGI(LOGTAG, "Single device optimisations enabled");
-            ds18b20_init_solo(ds18b20_info, mOwb); // only one device on bus
-        }
-        else
-        {
-            ds18b20_init(ds18b20_info, mOwb, device_rom_codes[i]); // associate with bus and device
-        }
-        ds18b20_use_crc(ds18b20_info, true); // enable CRC check for temperature readings
-        ds18b20_set_resolution(ds18b20_info, DS18B20_RESOLUTION);
-    } */
+        printf("\nTemperature readings (degrees C):\n");
+        float temp = ds18b20_convert_and_read_temp(&mDs18b20);
+        printf("   %.3f\n", temp);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+    }*/
 }
 
 void FridgeController::Fan(bool onoff)
@@ -227,62 +166,6 @@ void FridgeController::Peltier(bool onoff)
 
 void FridgeController::Run()
 {
-
-    //    // Read temperatures from all sensors sequentially
-    //    while (1)
-    //    {
-    //        printf("\nTemperature readings (degrees C):\n");
-    //        for (int i = 0; i < num_devices; ++i)
-    //        {
-    //            float temp = ds18b20_get_temp(devices[i]);
-    //            printf("  %d: %.3f\n", i, temp);
-    //        }
-    //        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    //    }
-
-    // Read temperatures more efficiently by starting conversions on all devices at the same time
-
-    int sample_count = 0;
-
-    while (1)
-    {
-        TickType_t start_ticks = xTaskGetTickCount();
-
-        /*      ds18b20_convert_all(mOwb);
-
-            // In this application all devices use the same resolution,
-            // so use the first device to determine the delay
-            ds18b20_wait_for_conversion(devices[0]);
-
-            // Read the results immediately after conversion otherwise it may fail
-            // (using printf before reading may take too long)
-            float temps[MAX_DEVICES];
-            for (int i = 0; i < num_devices; ++i)
-            {
-                temps[i] = ds18b20_read_temp(devices[i]);
-            }
-
-            // Print results in a separate loop, after all have been read
-            ESP_LOGI(LOGTAG, "  Temperature readings (degrees C): sample %d", ++sample_count);
-            for (int i = 0; i < num_devices; ++i)
-            {
-                if (temps[i] == DS18B20_INVALID_READING)
-                {
-                    ++crc_errors[i];
-                }
-
-                ESP_LOGI(LOGTAG, "  %d: %.1f    %d errors", i, temps[i], crc_errors[i]);
-            } */
-
-        // Make up periodic delay to approximately one sample period per measurement
-        ESP_LOGI(LOGTAG, "sample iteration.");
-        if ((xTaskGetTickCount() - start_ticks) < (SAMPLE_PERIOD / portTICK_PERIOD_MS))
-        {
-            vTaskDelay(SAMPLE_PERIOD / portTICK_PERIOD_MS - (xTaskGetTickCount() - start_ticks));
-        }
-    }
-
-    //-------------------------------
 
     while (true)
     {
@@ -331,5 +214,7 @@ bool FridgeController::SetTargetTemperature(float targetTemperature)
 */
 bool FridgeController::MeasureActualTemperature()
 {
-    return false;
+    mfActualTemperature = ds18b20_convert_and_read_temp(&mDs18b20);
+    ESP_LOGI(LOGTAG, "Temperature: %.3f", mfActualTemperature);
+    return true;
 };

@@ -10,6 +10,7 @@
 
 #include "String.h"
 #include "owb.h"
+#include "ds18b20.h"
 
 
 class FridgeController
@@ -50,6 +51,8 @@ class FridgeController
 	void Peltier(bool onoff);
 
 	OneWireBus *mOwb = NULL;
+	DS18B20_Info mDs18b20;
+	owb_rmt_driver_info mRmtDriverInfo;
 
 };
 
