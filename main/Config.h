@@ -44,6 +44,11 @@ public:
 	String msWebServerCert;
 
 	__uint32_t muLastSTAIpAddress;
+
+	// settings for fridge
+	float mfFridgeTargetTemperature;
+	bool  mbFridgePowerOn;
+	float mfFridgeDeadBand;
 };
 
 #endif /* MAIN_CONFIG_H_ */

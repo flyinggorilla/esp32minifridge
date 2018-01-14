@@ -21,6 +21,10 @@ Config::Config() {
 	muWebServerPort = 0;
 
 	muLastSTAIpAddress = 0;
+
+	mbFridgePowerOn = false;
+	mfFridgeTargetTemperature = 20.0;
+	mfFridgeDeadBand = 4.0;
 }
 
 Config::~Config() {
@@ -50,6 +54,13 @@ bool Config::Read(){
 	ReadString(h, "Organization", msOrganization);
 	ReadString(h, "Department", msDepartment);
 	ReadString(h, "Location", msLocation);
+
+	int i = 0;
+	ReadInt(h, "FridgeTargetTemperature", i);
+	mfFridgeTargetTemperature = i*10.0;
+	ReadInt(h, "FridgeDeadBand", i);
+	mfFridgeDeadBand = i*10.0;
+	ReadBool(h, "FridgePowerOn", mbFridgePowerOn);
 
 	nvs_close(h);
 	return true;
@@ -92,15 +103,19 @@ bool Config::Write()
 	if (!WriteString(h, "SrvCert", msWebServerCert))
 		return nvs_close(h), false;
 
-/*	if (!WriteString(h, "UfoId", msUfoId))
-		return nvs_close(h), false;
-	if (!WriteString(h, "UfoName", msUfoName))
-		return nvs_close(h), false; */
 	if (!WriteString(h, "Organization", msOrganization))
 		return nvs_close(h), false;
 	if (!WriteString(h, "Department", msDepartment))
 		return nvs_close(h), false;
 	if (!WriteString(h, "Location", msLocation))
+		return nvs_close(h), false;
+
+	// Fridge Settings
+	if (!WriteBool(h, "FridgePowerOn", mbFridgePowerOn))
+		return nvs_close(h), false;	
+	if (!WriteInt(h, "FridgeTargetTemperature", (int)(mfFridgeTargetTemperature*10)))
+		return nvs_close(h), false;
+	if (!WriteInt(h, "FridgeDeadBand", (int)(mfFridgeDeadBand*10)))
 		return nvs_close(h), false;
 
 	nvs_commit(h);

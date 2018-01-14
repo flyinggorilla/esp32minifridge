@@ -1,44 +1,19 @@
 {
     "configurations": [
         {
-            "name": "Linux",
-            "includePath": [
-                "/usr/include",
-                "/usr/local/include",
-                "C:\\github\\esp-idf\\components\\esp32\\include",
-                "C:\\github\\esp-idf\\components\\freertos\\include",
-                "C:\\github\\esp-idf\\components\\log\\include",
-                "C:\\github\\esp-idf\\components\\newlib\\include",
-                "C:\\github\\esp-idf\\components\\driver2\\include",
-                "${workspaceRoot}"
-            ],
-            "defines": [],
-            "intelliSenseMode": "clang-x64",
-            "browse": {
-                "path": [
-                    "/usr/include",
-                    "/usr/local/include",
-                    "${workspaceRoot}",
-                    "C:\\github\\esp-idf\\components\\esp32\\include",
-                    "C:\\github\\esp-idf\\components\\freertos\\include",
-                    "C:\\github\\esp-idf\\components\\log\\include",
-                    "C:\\github\\esp-idf\\components\\newlib\\include",
-                    "C:\\github\\esp-idf\\components\\driver2\\include"
-                ],
-                "limitSymbolsToIncludedHeaders": true,
-                "databaseFilename": ""
-            }
-        },
-        {
             "name": "Win32",
             "includePath": [
                 "${workspaceRoot}",
                 "${workspaceRoot}\\main",
+                "${workspaceRoot}\\build\\include",
+                "${workspaceRoot}\\components\\esp32-owb\\include",
+                "${workspaceRoot}\\components\\esp32-ds18b20\\include",
                 "C:\\github\\esp-idf\\components\\esp32\\include",
                 "C:\\github\\esp-idf\\components\\freertos\\include",
                 "C:\\github\\esp-idf\\components\\log\\include",
                 "C:\\github\\esp-idf\\components\\newlib\\include",
                 "C:\\github\\esp-idf\\components\\driver\\include",
+                "C:\\github\\esp-idf\\components\\nvs_flash\\include",
                 "C:\\github\\esp-idf\\components\\driver",
                 "C:\\github\\esp-idf\\components\\soc\\esp32\\include\\soc",
                 "C:\\msys32\\opt\\xtensa-esp32-elf\\lib\\gcc\\xtensa-esp32-elf\\5.2.0\\include"
@@ -52,10 +27,14 @@
                 "path": [
                     "${workspaceRoot}",
                     "${workspaceRoot}\\main",
+                    "${workspaceRoot}\\build\\include",
+                    "${workspaceRoot}\\components\\esp32-owb\\include",
+                    "${workspaceRoot}\\components\\esp32-ds18b20\\include",
                     "C:\\github\\esp-idf\\components\\esp32\\include",
                     "C:\\github\\esp-idf\\components\\freertos\\include",
                     "C:\\github\\esp-idf\\components\\log\\include",
                     "C:\\github\\esp-idf\\components\\newlib\\include",
+                    "C:\\github\\esp-idf\\components\\nvs_flash\\include",
                     "C:\\github\\esp-idf\\components\\driver\\include",
                     "C:\\github\\esp-idf\\components\\driver",
                     "C:\\github\\esp-idf\\components\\soc\\esp32\\include\\soc",

@@ -15,7 +15,6 @@
 #include "MemoryDataStream.h"
 #include "StorageDataStream.h"
 
-
 static char tag[] = "DynamicRequestHandler";
 
 extern Esp32MiniFridge esp32minifridge;
@@ -24,8 +23,8 @@ extern Wifi wifi;
 extern Storage storage;
 extern FridgeController fridgeController;
 
-#define OTA_LATEST_FIRMWARE_JSON_URL "http://nuc:9999/version.json" // testing with local go server
-#define OTA_LATEST_FIRMWARE_URL "http://nuc:9999/esp32minifridge.bin"		// testing with local go server
+#define OTA_LATEST_FIRMWARE_JSON_URL "http://nuc:9999/version.json"   // testing with local go server
+#define OTA_LATEST_FIRMWARE_URL "http://nuc:9999/esp32minifridge.bin" // testing with local go server
 //#define OTA_LATEST_FIRMWARE_JSON_URL "https://raw.githubusercontent.com/Dynatrace/ufo-esp32/master/firmware/version.json"
 //#define OTA_LATEST_FIRMWARE_URL "https://raw.githubusercontent.com/Dynatrace/ufo-esp32/master/firmware/ufo-esp32.bin"
 
@@ -46,13 +45,13 @@ bool DynamicRequestHandler::HandleApiRequest(std::list<TParam> &params, HttpResp
 	String sBody;
 	std::list<TParam>::iterator it = params.begin();
 
-	int volume = 100;
-	bool play = false;
-	String file;
+	//int volume = 100;
+	//bool play = false;
+	//String file;
 	while (it != params.end())
 	{
 
-		if ((*it).paramName == "gong")
+		/*if ((*it).paramName == "gong")
 		{
 			play = true;
 		}
@@ -73,30 +72,80 @@ bool DynamicRequestHandler::HandleApiRequest(std::list<TParam> &params, HttpResp
 		{
 			file = (*it).paramValue;
 			ESP_LOGI(tag, "gong playing file %s", file.c_str());
-		} else if ((*it).paramName == "fanhot") {
-			ESP_LOGI(tag, "fanhot");
-			long speed = (*it).paramValue.toInt();
-			if (speed > 0 ) {
-				ESP_LOGI(tag, "turning fan ON");
-				fridgeController.FanHot(speed);
-			} else {
-				ESP_LOGI(tag, "turning fan OFF");
-				fridgeController.FanHot(speed);
+		}
+		else*/
+		if ((*it).paramName == "targettemperature")
+		{
+			ESP_LOGI(tag, "targettemperature");
+			float targetTemperature = (*it).paramValue.toFloat();
+			ESP_LOGI(tag, "setting target temperature to %0.2f", targetTemperature);
+			if (!fridgeController.SetTargetTemperature(targetTemperature))
+			{
+				ESP_LOGW(tag, "Invalid temperature range or wrong comma format: %s", (*it).paramValue.c_str());
 			}
 		}
-		it++;
+		else if ((*it).paramName == "deadband")
+		{
+			ESP_LOGI(tag, "deadband");
+			float deadband = (*it).paramValue.toFloat();
+			ESP_LOGI(tag, "setting target deadband to %0.2f", deadband);
+			if (!fridgeController.SetDeadBand(deadband))
+			{
+				ESP_LOGW(tag, "Invalid deadband range or wrong comma format: %s", (*it).paramValue.c_str());
+			}
+		}
+		else if ((*it).paramName == "power")
+		{
+			ESP_LOGI(tag, "power");
+			if (((*it).paramValue == "on") || ((*it).paramValue == "1"))
+			{
+				ESP_LOGI(tag, "turning fridge ON");
+				fridgeController.Power(true);
+			}
+			else if (((*it).paramValue == "off") || ((*it).paramValue == "0"))
+			{
+				ESP_LOGI(tag, "turning fridge OFF");
+				fridgeController.Power(false);
+			}
+			else
+			{
+				ESP_LOGW(tag, "invalid power command - use on/off or 0/1");
+			}
+		}
+
+		sBody = "{\r\n";
+		sBody += "\"power\"=";
+		sBody += fridgeController.GetPower();
+		sBody += ",\r\n";
+		sBody += "\"targettemperature\"=";
+		sBody += fridgeController.GetTargetTemperature();
+		sBody += ",\r\n";		
+		sBody += "\"actualtemperature\"=";
+		sBody += fridgeController.GetActualTemperature();
+		sBody += ",\r\n";		
+		sBody += "\"deadband\"=";
+		sBody += fridgeController.GetDeadBand();
+		sBody += "\r\n}";		
+
 	}
+	it++;
+
+	/*
 	if (play)
 	{
 		musicPlayer.setVolume(volume);
-		if (file.length()) {
+		if (file.length())
+		{
 			musicPlayer.playAsync(new StorageDataStream(file));
-		} else {
+		}
+		else
+		{
 			musicPlayer.playAsync(new MemoryDataStream(wavdata_h, sizeof(wavdata_h)));
 		}
 		sBody = "<html><body>api call - lets play music</html></body>";
-	}
+	}*/
 
+	rResponse.AddHeader(HttpResponse::HeaderContentTypeJson);
 	rResponse.AddHeader(HttpResponse::HeaderNoCache);
 	rResponse.SetRetCode(200);
 	return rResponse.Send(sBody.c_str(), sBody.length());

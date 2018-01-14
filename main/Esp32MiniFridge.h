@@ -16,6 +16,7 @@ public:
 	void TaskResetButton();
 	void TaskDnsServer();
 	void TaskTestWebClient();
+	void TaskFridgeController();
 
 	void IndicateApiCall() 	{ mbApiCallReceived = true; };
 	void Restart(int seconds);

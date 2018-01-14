@@ -38,14 +38,14 @@ Wifi wifi;
 FridgeController fridgeController;
 
 
-// Wav* wav = NULL;
+
 Esp32MiniFridge::Esp32MiniFridge() {
-//	wav = NULL;
+
 	
 }
 
 Esp32MiniFridge::~Esp32MiniFridge() {
-//	delete wav;
+
 }
 
 extern "C" {
@@ -65,17 +65,15 @@ void task_function_webserver(void *pvParameter) {
 	vTaskDelete(NULL);
 }
 
+void task_function_fridgecontroller(void *pvParameter) {
+	((Esp32MiniFridge*) pvParameter)->TaskFridgeController();
+	vTaskDelete(NULL);
+}
+
 void task_function_resetbutton(void *pvParameter) {
 	((Esp32MiniFridge*) pvParameter)->TaskResetButton();
 	vTaskDelete(NULL);
 }
-
-/*
-void task_function_dnsserver(void *pvParameter) {
-	((Esp32MiniFridge*) pvParameter)->TaskDnsServer();
-	vTaskDelete(NULL);
-}
-*/
 
 void task_test_webclient(void *pvParameter) {
 	((Esp32MiniFridge*) pvParameter)->TaskTestWebClient();
@@ -83,7 +81,7 @@ void task_test_webclient(void *pvParameter) {
 }
 
 void task_function_restart(void* user_data) {
-	ESP_LOGI(LOGTAG, "Restarting in 2secs....");
+	ESP_LOGI(LOGTAG, "Restarting in 1secs....");
 	vTaskDelay(*((int*)user_data)*1000 / portTICK_PERIOD_MS);
 	esp_restart();
 }
@@ -96,7 +94,7 @@ void Esp32MiniFridge::Restart(int seconds) {
 
 void Esp32MiniFridge::Start() {
 
-	ESP_LOGI(LOGTAG, "Welcome to Bernd's ESP32 Gong");
+	ESP_LOGI(LOGTAG, "Welcome to Bernd's ESP32 Mini-Fridge");
 	ESP_LOGI(LOGTAG, "ESP-IDF version %s", esp_get_idf_version());
 	ESP_LOGI(LOGTAG, "Firmware version %s", FIRMWARE_VERSION);
 
@@ -105,7 +103,8 @@ void Esp32MiniFridge::Start() {
 	storage.Mount();
 
 	musicPlayer.init();
-	fridgeController.init();
+	fridgeController.init(mConfig.mbFridgePowerOn, mConfig.mfFridgeTargetTemperature);
+	fridgeController.SetDeadBand(mConfig.mfFridgeDeadBand);
 
 	mbButtonPressed = !gpio_get_level(GPIO_NUM_0);
 
@@ -116,7 +115,7 @@ void Esp32MiniFridge::Start() {
 	gpio_pad_select_gpio((gpio_num_t) ONBOARDLED_GPIO);
 	gpio_set_direction((gpio_num_t) ONBOARDLED_GPIO, (gpio_mode_t) GPIO_MODE_OUTPUT);
 
-//	xTaskCreate(&task_function_webserver, "Task_WebServer", 8192*2, this, 5, NULL);
+	xTaskCreate(&task_function_fridgecontroller, "Task_FridgeController", 4096, this, 5, NULL);
 	xTaskCreate(&task_function_webserver, "Task_WebServer", 8192, this, 5, NULL);
 	xTaskCreate(&task_function_resetbutton, "Task_ResetButton", 2048, this, 5, NULL);
 
@@ -243,6 +242,10 @@ void Esp32MiniFridge::TaskWebServer() {
 		}
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
+}
+
+void Esp32MiniFridge::TaskFridgeController() {
+	fridgeController.Run();
 }
 
 
