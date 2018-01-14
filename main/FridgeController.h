@@ -20,7 +20,7 @@ public:
 	 */
 	void init();
 
-	void FanHot(bool onoff);
+	void FanHot(unsigned short speed);
 
 
 

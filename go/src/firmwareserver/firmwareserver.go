@@ -12,7 +12,8 @@ import (
 	"os"
 )
 
-const firmwareFileName string = "C:/Users/bernd/Documents/GitHub/esp32minifridge/build/esp32minifridge.bin"
+//const firmwareFileName string = "C:/Users/bernd/Documents/GitHub/esp32minifridge/build/esp32minifridge.bin"
+const firmwareFileName string = "C:/GitHub/esp32minifridge/build/esp32minifridge.bin"
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("serving User-Agent: ", r.Header.Get("User-Agent"))

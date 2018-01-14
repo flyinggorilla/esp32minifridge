@@ -5,6 +5,9 @@
 #include <esp_event_loop.h>
 #include <esp_log.h>
 #include <esp_system.h>
+#include "driver/mcpwm.h"
+#include "soc/mcpwm_reg.h"
+#include "soc/mcpwm_struct.h"
 
 #include "String.h"
 
@@ -34,10 +37,10 @@ FridgeController::~FridgeController()
 {
 }
 
-uint64_t PinBit(uint64_t pin) {
+uint64_t PinBit(uint64_t pin)
+{
     return BIT(pin);
 }
-
 
 void FridgeController::init()
 {
@@ -54,9 +57,37 @@ void FridgeController::init()
     io_conf.pull_up_en = (gpio_pullup_t)0;
     //configure GPIO with the given settings
     gpio_config(&io_conf);
+
+    printf("initializing mcpwm gpio...\n");
+
+
+    //2. initial mcpwm configuration
+    printf("Configuring Initial Parameters of mcpwm...\n");
+    mcpwm_config_t pwm_config;
+    pwm_config.frequency = 50; //frequency = 500Hz,
+    pwm_config.cmpr_a = 0;       //duty cycle of PWMxA = 0
+    pwm_config.cmpr_b = 0;       //duty cycle of PWMxb = 0
+    pwm_config.counter_mode = MCPWM_UP_COUNTER;
+    pwm_config.duty_mode = MCPWM_DUTY_MODE_0;
+    mcpwm_init(MCPWM_UNIT_0, MCPWM_TIMER_0, &pwm_config); //Configure PWM0A & PWM0B with above settings
+
+    mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM0A, GPIO_FANHOT);
+    mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM0B, GPIO_FANCOLD);
 }
 
-void FridgeController::FanHot(bool onoff)
+void FridgeController::FanHot(unsigned short speed)
 {
-    gpio_set_level(GPIO_FANHOT, onoff);
+
+    //gpio_set_level(GPIO_FANHOT, onoff);
+    if (speed == 0)
+    {
+        mcpwm_set_signal_low(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A);
+    }
+    else
+    {
+        mcpwm_set_signal_low(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A);
+        mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, (float)speed);
+        mcpwm_set_duty_type(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, MCPWM_DUTY_MODE_0); //call this each time, if operator was previously in low/high state
+    }
 }
+

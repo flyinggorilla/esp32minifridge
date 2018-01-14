@@ -24,8 +24,8 @@ extern Wifi wifi;
 extern Storage storage;
 extern FridgeController fridgeController;
 
-#define OTA_LATEST_FIRMWARE_JSON_URL "http://surpro5:9999/version.json" // testing with local go server
-#define OTA_LATEST_FIRMWARE_URL "http://surpro5:9999/esp32minifridge.bin"		// testing with local go server
+#define OTA_LATEST_FIRMWARE_JSON_URL "http://nuc:9999/version.json" // testing with local go server
+#define OTA_LATEST_FIRMWARE_URL "http://nuc:9999/esp32minifridge.bin"		// testing with local go server
 //#define OTA_LATEST_FIRMWARE_JSON_URL "https://raw.githubusercontent.com/Dynatrace/ufo-esp32/master/firmware/version.json"
 //#define OTA_LATEST_FIRMWARE_URL "https://raw.githubusercontent.com/Dynatrace/ufo-esp32/master/firmware/ufo-esp32.bin"
 
@@ -78,10 +78,10 @@ bool DynamicRequestHandler::HandleApiRequest(std::list<TParam> &params, HttpResp
 			long speed = (*it).paramValue.toInt();
 			if (speed > 0 ) {
 				ESP_LOGI(tag, "turning fan ON");
-				fridgeController.FanHot(true);
+				fridgeController.FanHot(speed);
 			} else {
 				ESP_LOGI(tag, "turning fan OFF");
-				fridgeController.FanHot(false);
+				fridgeController.FanHot(speed);
 			}
 		}
 		it++;
