@@ -1,7 +1,11 @@
 # esp32minifridge
-ESP32 based Gong with embedded webserver, Audio/Sound player, OTA and more - e.g. for Sparkfun thing, Adafruit Huzzah32, and many others
+ESP32 Adafruit Huzzah32 controlled mini-fridge
 
 ## features
+* controls 12V Peltier element through N-MOSFET
+* controls 2-BLDC fans through L293D motor driver
+* simple 2-point temperature control
+* DS18B20 single-wire digital temperature sensor
 * Webserver with GET/POST, multipart-mime upload and TLS support 
 * Webclient with TLS support
 * Url/Querystring parser
@@ -15,12 +19,8 @@ ESP32 based Gong with embedded webserver, Audio/Sound player, OTA and more - e.g
 * Stores config in NVS
 * Storage class to wrap SPIFFS read/write access for storing uploaded files on flash on dedicated data partition
 
-todo:
-* mp3 support
-
 ## screenshots
 
-![storage](storage.png)
 
 ## build
 
@@ -30,17 +30,4 @@ todo:
 *  
 
 ## hardware
-
-* SparkFun thing
-* [Adafruit MAX98357A](https://www.adafruit.com/product/3006)
-* Standard 3" speaker - 4Ohm, 3W e.g. [https://www.adafruit.com/product/1314](https://www.adafruit.com/product/1314)
-* 3D printed case - [download model from thingiverse](https://www.thingiverse.com/thing:2562145)
-
-![gong speaker-box](gong.jpg)
-
-
-
-
-![speaker-box with sparkfun thing](wiring.jpg)
-
 
