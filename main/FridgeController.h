@@ -36,18 +36,19 @@ class FridgeController
 	void Power(bool onoff);
 	bool GetPower() { return mbIsPower; };
 	void Run();
+	bool IsError() { return mbIsError; };
+	bool IsCooling() { return mbIsPeltier; };
 
   private:
 	//SemaphoreHandle_t playerMutex;
 	float mfTargetTemperature = 20.0;
-	float mfActualTemperature = 0;
+	volatile float mfActualTemperature = 0;
 	bool mbIsPower = true;
-	bool mbIsError = false;
-	bool mbIsPeltier = false;
+	volatile bool mbIsError = false;
+	volatile bool mbIsPeltier = false;
 	float mfDeadBand = 4.0;
 
 	void Fan(bool onoff);
-	void Led(uint8_t brightness);
 	void Peltier(bool onoff);
 
 	OneWireBus *mOwb = NULL;

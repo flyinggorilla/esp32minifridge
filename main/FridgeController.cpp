@@ -144,7 +144,7 @@ bool FridgeController::SetDeadBand(float deadBand)
     return true;
 }
 
-void FridgeController::Led(uint8_t brightness){
+/*void FridgeController::Led(uint8_t brightness){
 
     /*if (brightness == 0)
     {
@@ -155,8 +155,8 @@ void FridgeController::Led(uint8_t brightness){
         mcpwm_set_signal_low(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A);
         mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, (float)brightness);
         mcpwm_set_duty_type(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, MCPWM_DUTY_MODE_0); //call this each time, if operator was previously in low/high state
-    }*/
-};
+    }
+};*/
 
 void FridgeController::Peltier(bool onoff)
 {
@@ -214,7 +214,11 @@ bool FridgeController::SetTargetTemperature(float targetTemperature)
 */
 bool FridgeController::MeasureActualTemperature()
 {
-    mfActualTemperature = ds18b20_convert_and_read_temp(&mDs18b20);
-    ESP_LOGI(LOGTAG, "Temperature: %.3f", mfActualTemperature);
+    float temperature = ds18b20_convert_and_read_temp(&mDs18b20);
+    ESP_LOGI(LOGTAG, "Temperature: %.3f", temperature);
+    if (temperature == DS18B20_INVALID_READING)  {
+        return false;
+    }
+    mfActualTemperature = temperature;
     return true;
 };

@@ -11,8 +11,8 @@
 
 Config::Config() {
 	mbAPMode = true;
-	msAPSsid = "esp32minifridge";
-	msHostname = "esp32minifridge";
+	msAPSsid = "minifridge";
+	msHostname = "minifridge";
 
 	msSTASsid = WIFI_SSID;
 	msSTAPass = WIFI_PASS;

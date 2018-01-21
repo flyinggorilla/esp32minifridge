@@ -167,7 +167,7 @@ static float _wait_for_conversion(DS18B20_RESOLUTION resolution)
 
 static float _decode_temp(uint8_t lsb, uint8_t msb, DS18B20_RESOLUTION resolution)
 {
-    float result = 0.0f;
+    float result = DS18B20_INVALID_READING;
     if (_check_resolution(resolution))
     {
         // masks to remove undefined bits from result
@@ -406,7 +406,7 @@ float ds18b20_wait_for_conversion(const DS18B20_Info * ds18b20_info)
 
 float ds18b20_read_temp(const DS18B20_Info * ds18b20_info)
 {
-    float temp = 0.0f;
+    float temp = DS18B20_INVALID_READING;
     if (_is_init(ds18b20_info))
     {
         const OneWireBus * bus = ds18b20_info->bus;
@@ -455,7 +455,7 @@ float ds18b20_read_temp(const DS18B20_Info * ds18b20_info)
 
 float ds18b20_convert_and_read_temp(const DS18B20_Info * ds18b20_info)
 {
-    float temp = 0.0f;
+    float temp = DS18B20_INVALID_READING;
     if (_is_init(ds18b20_info))
     {
         if (ds18b20_convert(ds18b20_info))

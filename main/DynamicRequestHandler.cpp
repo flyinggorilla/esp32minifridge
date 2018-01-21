@@ -299,7 +299,7 @@ bool DynamicRequestHandler::HandleConfigRequest(std::list<TParam> &params, HttpR
 
 		if ((*it).paramName == "wifimode")
 			sWifiMode = (*it).paramValue.c_str();
-		else if ((*it).paramName == "wifissid")
+		else if ((*it).paramName == "wifissid" && (*it).paramValue.length())
 		{
 			sWifiSsid = (*it).paramValue.c_str();
 			ESP_LOGI(tag, "SETTING SSID TO: %s", sWifiSsid);

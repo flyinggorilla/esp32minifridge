@@ -10,6 +10,7 @@
 #include "esp_event.h"
 #include "esp_event_loop.h"
 #include "nvs_flash.h"
+#include "rom/rtc.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include <stdio.h>
@@ -27,7 +28,8 @@
 #include "WebClient.h"
 #include "Ota.h"
 
-#define ONBOARDLED_GPIO GPIO_NUM_5  // GPIO5 on Sparkfun ESP32 Thing
+#define ONBOARDLED_GPIO GPIO_NUM_13  // GPIO13 on Adafruit Huzzah, GPIO5 on Sparkfun ESP32 Thing, 
+
 #define LOGTAG "main"
 
 I2SPlayer musicPlayer;
@@ -94,7 +96,7 @@ void Esp32MiniFridge::Restart(int seconds) {
 
 void Esp32MiniFridge::Start() {
 
-	ESP_LOGI(LOGTAG, "Welcome to Bernd's ESP32 Mini-Fridge");
+	ESP_LOGI(LOGTAG, "Welcome to ESP32 Mini-Fridge");
 	ESP_LOGI(LOGTAG, "ESP-IDF version %s", esp_get_idf_version());
 	ESP_LOGI(LOGTAG, "Firmware version %s", FIRMWARE_VERSION);
 
@@ -121,6 +123,19 @@ void Esp32MiniFridge::Start() {
 
 	ESP_LOGI(LOGTAG, "CONFIG HOSTNAME: %s", mConfig.msHostname.c_str() == NULL ? "NULL" : mConfig.msHostname.c_str());
 
+	// Adafruit ESP32 Huzzah handling via Reset mode
+	// long press reset button: rst::0x10 (RTCWDT_RTC_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+	// short press 
+
+	//ESP_LOGD(LOGTAG, "RESET REASON CPU0=%i, CPU1=%i", rtc_get_reset_reason(0), rtc_get_reset_reason(1));
+	if (rtc_get_reset_reason(0) == RTCWDT_RTC_RESET) {
+		ESP_LOGI(LOGTAG, "On-board reset button pressed... toggling Access Point mode and rebooting.");
+		mConfig.ToggleAPMode();
+		mConfig.Write();
+		esp_restart();
+	}
+
+
 	if (mConfig.mbAPMode) {
 		if (mConfig.muLastSTAIpAddress) {
 			char sBuf[16];
@@ -134,8 +149,10 @@ void Esp32MiniFridge::Start() {
 	} else {
 		if (mConfig.msSTAENTUser.length())
 			wifi.StartSTAModeEnterprise(mConfig.msSTASsid, mConfig.msSTAENTUser, mConfig.msSTAPass, mConfig.msSTAENTCA, mConfig.msHostname);
-		else
+		else {
 			wifi.StartSTAMode(mConfig.msSTASsid, mConfig.msSTAPass, mConfig.msHostname);
+		}
+
 		const char* hostname;
 		tcpip_adapter_get_hostname(TCPIP_ADAPTER_IF_STA, &hostname);
 		ESP_LOGI(LOGTAG, "Station hostname: %s", hostname);
@@ -143,18 +160,15 @@ void Esp32MiniFridge::Start() {
 		ESP_LOGI(LOGTAG, "AP hostname: %s", hostname);
 		ESP_LOGI(LOGTAG, "MDNS feature is disabled - no use found for it so far -- SSDP more interesting");
 		//wifi.StartMDNS();
+
 	}
 
-	//while(!wifi.IsConnected()) {
-	//	vTaskDelay(100/portTICK_PERIOD_MS);
-	//}
+	// while(!wifi.IsConnected()) {
+	//	ESP_LOGI(LOGTAG, "waiting for wifi");
+	//	vTaskDelay(1000/portTICK_PERIOD_MS);
+	// }
 
-	//xTaskCreate(&task_test_webclient, "Task_TestWebClient", 8192, this, 5, NULL);
-	//ESP_LOGI(LOGTAG, "********************** OTA MAIN VERSION *********************");
-	//Ota ota;
-    //ota.UpdateFirmware("https://surpro4:9999/getfirmware");
-	//ESP_LOGI(LOGTAG, "********************** OTA THREAD VERSION PINNED TO CORE *********************");
-	//Ota::StartUpdateFirmwareTask();
+
 
 
 }
@@ -253,30 +267,44 @@ void Esp32MiniFridge::TaskDnsServer() {
 //	dnsServer.start();
 }
 
+// blinkrate legend
+// 1.8s on, 0.2s off   	wifi connected, cooling, all ok
+// 0.2s on, 1.8s off	wifi connected, not cooling, all ok
+// 0.5s on, 0.5s off,   wifi not connected, or in AP mode
+// 0.1s on, 0,1s off,   error 
 void Esp32MiniFridge::TaskResetButton() {
 	int level = 0;
 	int ticks = 0;
 
 	while (true) {
-		if (wifi.IsConnected() && mbApiCallReceived) {
-			gpio_set_level((gpio_num_t) ONBOARDLED_GPIO, (gpio_mode_t) level);
-			level = !level;
-			ticks = 0;
-		} else {
-			int minticks = 1;
-			if (mConfig.mbAPMode)
-				minticks = 0; // blink fast in APmode
 
-			if (ticks > minticks) { // blink half speed
-				level = !level;
-				ticks = 0;
+		if (ticks <= 0) {
+			if (wifi.IsConnected() && !mConfig.mbAPMode) {
+				if (fridgeController.IsCooling() ? !level : level) {
+					ticks = 18;
+				} else {
+					ticks = 2;
+				}
+
+			} else {
+				ticks = 5;
 			}
+
+			if (fridgeController.IsError()) {
+				ticks = 1;
+			}
+
+			level = !level;
 		}
-		ticks++;
+
+		ticks--;
 
 		gpio_set_level((gpio_num_t) ONBOARDLED_GPIO, (gpio_mode_t) level);
-		vTaskDelay(500 / portTICK_PERIOD_MS);
 
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+
+		// this does not work for Adafruit Huzzah 
+		/*
 		if (!gpio_get_level(GPIO_NUM_0)) {
 			if (!mbButtonPressed) {
 				ESP_LOGI(LOGTAG, "Factory settings button pressed... rebooting into Access Point mode.");
@@ -286,9 +314,8 @@ void Esp32MiniFridge::TaskResetButton() {
 			}
 		} else {
 			mbButtonPressed = false;
-		}
+		}*/
 
-		vTaskDelay(1);
 	}
 }
 
