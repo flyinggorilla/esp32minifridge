@@ -137,7 +137,7 @@ void FridgeController::Power(bool onoff)
 
 bool FridgeController::SetDeadBand(float deadBand)
 {
-    if ((deadBand < 0.5) || (deadBand > 10.0)) // sanity checks, adjust to your needs
+    if ((deadBand < 0.1) || (deadBand > 10.0)) // sanity checks, adjust to your needs
         return false;
 
     mfDeadBand = deadBand;
@@ -146,7 +146,7 @@ bool FridgeController::SetDeadBand(float deadBand)
 
 /*void FridgeController::Led(uint8_t brightness){
 
-    /*if (brightness == 0)
+    if (brightness == 0)
     {
         mcpwm_set_signal_low(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A);
     }

@@ -21,6 +21,7 @@ public:
 	void IndicateApiCall() 	{ mbApiCallReceived = true; };
 	void Restart(int seconds);
 	Config& GetConfig() { return mConfig; }
+	bool StoreConfig();
 
 private:
 	bool mbButtonPressed;

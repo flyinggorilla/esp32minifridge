@@ -34,7 +34,7 @@ class FridgeController
 	*/
 	bool MeasureActualTemperature();
 	void Power(bool onoff);
-	bool GetPower() { return mbIsPower; };
+	bool IsPower() { return mbIsPower; };
 	void Run();
 	bool IsError() { return mbIsError; };
 	bool IsCooling() { return mbIsPeltier; };

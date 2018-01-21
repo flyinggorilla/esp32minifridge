@@ -104,7 +104,7 @@ void Esp32MiniFridge::Start() {
 
 	storage.Mount();
 
-	musicPlayer.init();
+	//musicPlayer.init();
 	fridgeController.init(mConfig.mbFridgePowerOn, mConfig.mfFridgeTargetTemperature);
 	fridgeController.SetDeadBand(mConfig.mfFridgeDeadBand);
 
@@ -128,12 +128,13 @@ void Esp32MiniFridge::Start() {
 	// short press 
 
 	//ESP_LOGD(LOGTAG, "RESET REASON CPU0=%i, CPU1=%i", rtc_get_reset_reason(0), rtc_get_reset_reason(1));
-	if (rtc_get_reset_reason(0) == RTCWDT_RTC_RESET) {
+	//############## TODO --- does the huzzah need an external reset button!
+	/*if (rtc_get_reset_reason(0) == RTCWDT_RTC_RESET) {
 		ESP_LOGI(LOGTAG, "On-board reset button pressed... toggling Access Point mode and rebooting.");
 		mConfig.ToggleAPMode();
 		mConfig.Write();
 		esp_restart();
-	}
+	}*/
 
 
 	if (mConfig.mbAPMode) {
@@ -171,6 +172,13 @@ void Esp32MiniFridge::Start() {
 
 
 
+}
+
+bool Esp32MiniFridge::StoreConfig() {
+	mConfig.mbFridgePowerOn = fridgeController.IsPower();
+	mConfig.mfFridgeDeadBand = fridgeController.GetDeadBand();
+	mConfig.mfFridgeTargetTemperature = fridgeController.GetTargetTemperature();
+	return mConfig.Write();
 }
 
 void Esp32MiniFridge::TaskTestWebClient() {
@@ -270,6 +278,7 @@ void Esp32MiniFridge::TaskDnsServer() {
 // blinkrate legend
 // 1.8s on, 0.2s off   	wifi connected, cooling, all ok
 // 0.2s on, 1.8s off	wifi connected, not cooling, all ok
+// 0.2s on, 4.8s off	wifi connected, not cooling, all ok, but power off
 // 0.5s on, 0.5s off,   wifi not connected, or in AP mode
 // 0.1s on, 0,1s off,   error 
 void Esp32MiniFridge::TaskResetButton() {
@@ -284,6 +293,10 @@ void Esp32MiniFridge::TaskResetButton() {
 					ticks = 18;
 				} else {
 					ticks = 2;
+				}
+
+				if (!fridgeController.IsPower() && level) {
+				  ticks = 48;
 				}
 
 			} else {

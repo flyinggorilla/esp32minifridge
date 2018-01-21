@@ -57,9 +57,9 @@ bool Config::Read(){
 
 	int i = 0;
 	ReadInt(h, "FridgeTargetTemperature", i);
-	mfFridgeTargetTemperature = i*10.0;
+	mfFridgeTargetTemperature = i/10.0;
 	ReadInt(h, "FridgeDeadBand", i);
-	mfFridgeDeadBand = i*10.0;
+	mfFridgeDeadBand = i/10.0;
 	ReadBool(h, "FridgePowerOn", mbFridgePowerOn);
 
 	nvs_close(h);
@@ -113,9 +113,9 @@ bool Config::Write()
 	// Fridge Settings
 	if (!WriteBool(h, "FridgePowerOn", mbFridgePowerOn))
 		return nvs_close(h), false;	
-	if (!WriteInt(h, "FridgeTargetTemperature", (int)(mfFridgeTargetTemperature*10)))
+	if (!WriteInt(h, "FridgeTargetTemperature", (int)(mfFridgeTargetTemperature*10.0)))
 		return nvs_close(h), false;
-	if (!WriteInt(h, "FridgeDeadBand", (int)(mfFridgeDeadBand*10)))
+	if (!WriteInt(h, "FridgeDeadBand", (int)(mfFridgeDeadBand*10.0)))
 		return nvs_close(h), false;
 
 	nvs_commit(h);

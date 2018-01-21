@@ -32,7 +32,8 @@
 	<script name="forms.min.js" phononversion="1.4.5">
 		!function(e){"use strict";function t(e){e.on("focus",n),e.on("blur",i)}function n(e){e.target.parentNode.classList.add("input-filled")}function i(e){""===e.target.value.trim()&&e.target.parentNode.classList.remove("input-filled")}function o(e){""===e.value.trim()||e.parentNode.classList.contains("input-filled")||e.parentNode.classList.add("input-filled")}document.on("pagecreated",function(e){for(var n=document.querySelector(e.detail.page),i=n.querySelectorAll("input.with-label"),l=i.length-1;l>=0;l--)t(i[l]),o(i[l])}),document.on("pageopened",function(e){for(var t=document.querySelector(e.detail.page),n=t.querySelectorAll("input.with-label"),i=n.length-1;i>=0;i--)o(n[i])})}("undefined"!=typeof window?window:this);
 	</script>
-	<title>ESP32 Gong</title>
+
+	<title>MiniFridge</title>
 </head>
 
 <body>
@@ -40,7 +41,7 @@
 	<home data-page="true">
 		<header class="header-bar">
 			<div class="center">
-				<h1 class="title">ESP32 Gong</h1>
+				<h1 class="title">MiniFridge</h1>
 			</div>
 		</header>
 
@@ -48,31 +49,57 @@
 		<div class="content">
 
 			<ul class="list">
-				<li class="divider">ESP32Gong communication APIs (REST calls)</li>
+				<li class="divider">MiniFridge Status</li>
+				<div id='apis'>
+					<li class="padded-list">Power: <span id="ispower">-</span></li>
+					<li class="padded-list">Actual temperature:	<span id="actualtemperature">-</span></li>
+					<li class="padded-list">Target temperature:	<span id="targettemperature">-</span></li>
+					<li class="padded-list">Deadband: <span id="deadband">-</span></li>
+					<li class="padded-list">Cooling: <span id="iscooling">-</span></li>
+				</div>
+				<li class="divider">MiniFridge Configuration (REST calls)</li>
 				<div id='apis'>
 					<li>
-						<span class="padded-list">/api?gong&amp;volume=10</span>
-						<button class="btn btn-flat primary pull-right" id="gongplay" data-api="/api?gong&amp;volume=10">play</button>
+						<span class="padded-list">Power ON (/api?power=on|off)</span>
+						<button class="btn btn-flat primary pull-right" id="poweronbutton" data-api="/api?power=on">ON</button>
 					</li>
 					<li>
-				</div>
-				<li class="divider">ESP32Gong machine room</li>
-				<li>
-					<a href="#!pageinfo" class="padded-list">Info</a>
-				</li>
-				<li>
-					<a href="#!pagestorage" class="padded-list">Storage</a>
-				</li>
-				<li>
-					<a href="#!pagefirmwareupdate" class="padded-list">Firmware update</a>
-				</li>
-				<li>
-					<!--<a href="wifisettings.html" class="padded-list">Wifi settings</a>-->
-					<a href="#!pagewifisettings" class="padded-list">WIFI Settings</a>
-				</li>
-				<li>
-					<a href="#!pageserversettings" class="padded-list">Web Server Settings</a>
-				</li>
+						<span class="padded-list">Power OFF (/api?power=on|off)</span>
+						<button class="btn btn-flat primary pull-right" id="poweroffbutton" data-api="/api?power=off">OFF</button>
+					</li>
+					<li>
+						<input class="padded-list" type="text" name="targettemperature" placeholder="Target temperature (/api?targettemperature=&lt;5.0..30&gt;)"
+						 id="targettemperatureinput" />
+						<button class="btn btn-flat primary pull-right" id="targettemperaturebutton" data-api="/api?targettemperature=">SET</button>
+					</li>
+					<li>
+						<input class="padded-list" type="text" name="deadband" placeholder="Deadband (/api?deadband=&lt;0.1..10&gt;)" id="deadbandinput" />
+						<button class="btn btn-flat primary pull-right" id="deadbandbutton" data-api="/api?deadband=">SET</button>
+					</li>
+					<li>
+						<span class="padded-list">Store configuration (/api?storeconfig)</span>
+						<button class="btn btn-flat primary pull-right" id="storeconfigbutton" data-api="/api?storeconfig">Store</button>
+					</li>
+			
+			
+					<li class="divider">MiniFridge machine room</li>
+					<li>
+						<a href="#!pageinfo" class="padded-list">Info</a>
+					</li>
+					<li>
+						<a href="#!pagestorage" class="padded-list">Storage</a>
+					</li>
+					<li>
+						<a href="#!pagefirmwareupdate" class="padded-list">Firmware update</a>
+					</li>
+					<li>
+						<!--<a href="wifisettings.html" class="padded-list">Wifi settings</a>-->
+						<a href="#!pagewifisettings" class="padded-list">WIFI Settings</a>
+					</li>
+					<li>
+						<a href="#!pageserversettings" class="padded-list">Web Server Settings</a>
+					</li>
+					</div>
 			</ul>
 
 
@@ -351,6 +378,8 @@
 	<!-- our app config -->
 	<!-- <script src="app.js"></script> -->
 	<script>
+
+
 		var editIt = function (apiid) {
 			window.location.href = "#!pageapiedit/" + apiid;
 		}
@@ -378,6 +407,13 @@
 			var onApi = function (evt) {
 				var target = evt.target;
 				var apicall = target.getAttribute('data-api');
+
+				if (target.getAttribute('id') == "targettemperaturebutton") {
+					apicall += 	document.getElementById('targettemperatureinput').value;
+				} else if (target.getAttribute('id') == "deadbandbutton") {
+					apicall += 	document.getElementById('deadbandinput').value;
+				}
+
 				console.log(apicall);
 
 				var req = phonon.ajax({
@@ -444,8 +480,16 @@
 			};
 
 			var continueHome = function() {
-				document.querySelector('#gongplay').on('click', onApi);
-				document.querySelector('#gongplay').on('tap', onApi);
+				document.querySelector('#poweronbutton').on('click', onApi);
+				document.querySelector('#poweronbutton').on('tap', onApi);
+				document.querySelector('#poweroffbutton').on('click', onApi);
+				document.querySelector('#poweroffbutton').on('tap', onApi);
+				document.querySelector('#storeconfigbutton').on('click', onApi);
+				document.querySelector('#storeconfigbutton').on('tap', onApi);
+				document.querySelector('#targettemperaturebutton').on('click', onApi);
+				document.querySelector('#targettemperaturebutton').on('tap', onApi);
+				document.querySelector('#deadbandbutton').on('click', onApi);
+				document.querySelector('#deadbandbutton').on('tap', onApi);
 			};
 
 			activity.onCreate(function () {
@@ -474,6 +518,33 @@
 					}
 				});
 			})
+
+			var statusRefresh = function () {
+
+				console.log("Status-Refresher called");
+
+				var req = phonon.ajax({
+					method: 'GET',
+					url: "/api?status",
+					dataType: 'json',
+					success: function (result, xhr) {
+						console.log(result);
+						document.getElementById('ispower').innerHTML = result.power;
+						document.getElementById('targettemperature').innerHTML = result.targettemperature;
+						document.getElementById('actualtemperature').innerHTML = result.actualtemperature;
+						document.getElementById('deadband').innerHTML = result.deadband;
+						document.getElementById('iscooling').innerHTML = result.cooling;
+					},
+
+					error: function (res, flagError, xhr) {
+						console.error(flagError);
+						console.log(res);
+					}
+				});
+			}
+
+			setTimeout(statusRefresh, 1);
+			setInterval(statusRefresh, 10000);
 		});
 
 
