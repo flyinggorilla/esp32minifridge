@@ -23,8 +23,8 @@ Config::Config() {
 	muLastSTAIpAddress = 0;
 
 	mbFridgePowerOn = false;
-	mfFridgeTargetTemperature = 20.0;
-	mfFridgeDeadBand = 4.0;
+	mfFridgeTargetTemperature = 22.0;
+	mfFridgeDeadBand = 1.0;
 }
 
 Config::~Config() {
@@ -56,11 +56,11 @@ bool Config::Read(){
 	ReadString(h, "Location", msLocation);
 
 	int i = 0;
-	ReadInt(h, "FridgeTargetTemperature", i);
+	ReadInt(h, "TargetTemp", i);
 	mfFridgeTargetTemperature = i/10.0;
-	ReadInt(h, "FridgeDeadBand", i);
+	ReadInt(h, "DeadBand", i);
 	mfFridgeDeadBand = i/10.0;
-	ReadBool(h, "FridgePowerOn", mbFridgePowerOn);
+	ReadBool(h, "PowerOn", mbFridgePowerOn);
 
 	nvs_close(h);
 	return true;
@@ -111,12 +111,13 @@ bool Config::Write()
 		return nvs_close(h), false;
 
 	// Fridge Settings
-	if (!WriteBool(h, "FridgePowerOn", mbFridgePowerOn))
+	if (!WriteBool(h, "PowerOn", mbFridgePowerOn))
 		return nvs_close(h), false;	
-	if (!WriteInt(h, "FridgeTargetTemperature", (int)(mfFridgeTargetTemperature*10.0)))
+	if (!WriteInt(h, "DeadBand", (int)(mfFridgeDeadBand*10.0)))
 		return nvs_close(h), false;
-	if (!WriteInt(h, "FridgeDeadBand", (int)(mfFridgeDeadBand*10.0)))
+	if (!WriteInt(h, "TargetTemp", (int)(mfFridgeTargetTemperature*10.0)))
 		return nvs_close(h), false;
+
 
 	nvs_commit(h);
 	nvs_close(h);

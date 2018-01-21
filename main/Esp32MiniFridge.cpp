@@ -105,6 +105,7 @@ void Esp32MiniFridge::Start() {
 	storage.Mount();
 
 	//musicPlayer.init();
+
 	fridgeController.init(mConfig.mbFridgePowerOn, mConfig.mfFridgeTargetTemperature);
 	fridgeController.SetDeadBand(mConfig.mfFridgeDeadBand);
 
