@@ -33,3 +33,7 @@
 
 build
 
+main/indexhtml.h
+*.bak
+*.old
+main/indexhtml.h

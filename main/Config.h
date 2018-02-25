@@ -39,6 +39,11 @@ public:
 	String msDepartment;
 	String msLocation;
 
+    String msDynatraceEnvironmentIdOrUrl;
+    String msDynatraceApiToken;
+    int miDynatraceMonitoringInterval;
+	bool mbDynatraceMonitoring;
+
 	bool mbWebServerUseSsl;
 	__uint16_t muWebServerPort;
 	String msWebServerCert;

@@ -19,8 +19,8 @@ Config::Config() {
 
 	mbWebServerUseSsl = false;
 	muWebServerPort = 0;
-
-	muLastSTAIpAddress = 0;
+	
+	mbDynatraceMonitoring = false;
 
 	mbFridgePowerOn = false;
 	mfFridgeTargetTemperature = 22.0;
@@ -46,6 +46,10 @@ bool Config::Read(){
 	ReadString(h, "STAENTUser", msSTAENTUser);
 	ReadString(h, "STAENTCA", msSTAENTCA);
 	ReadString(h, "hostname", msHostname);
+	ReadString(h, "DTEnvId", msDynatraceEnvironmentIdOrUrl);
+	ReadString(h, "DTApiToken", msDynatraceApiToken);
+	ReadInt(h, "DTInterval", miDynatraceMonitoringInterval);
+	ReadBool(h, "DTMonitoring", mbDynatraceMonitoring);
 	ReadBool(h, "SrvSSLEnabled", mbWebServerUseSsl);
 	nvs_get_u16(h, "SrvListenPort", &muWebServerPort);
 	ReadString(h, "SrvCert", msWebServerCert);
@@ -95,6 +99,17 @@ bool Config::Write()
 		return nvs_close(h), false;
 	if (nvs_set_u32(h, "STAIpAddress", muLastSTAIpAddress) != ESP_OK)
 		return nvs_close(h), false;
+
+	if (!WriteBool(h, "DTMonitoring", mbDynatraceMonitoring))
+		return nvs_close(h), false;
+	if (!WriteString(h, "DTEnvId", msDynatraceEnvironmentIdOrUrl))
+		return nvs_close(h), false;
+	if (!WriteString(h, "DTApiToken", msDynatraceApiToken))
+		return nvs_close(h), false;
+	if (!WriteInt(h, "DTInterval", miDynatraceMonitoringInterval))
+		return nvs_close(h), false;
+
+
 
 	if (!WriteBool(h, "SrvSSLEnabled", mbWebServerUseSsl))	
 		return nvs_close(h), false;

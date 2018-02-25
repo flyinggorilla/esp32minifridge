@@ -114,6 +114,11 @@ bool Esp32MiniFridgeWebServer::HandleRequest(HttpRequestParser &httpParser, Http
 		if (!requestHandler.HandleSrvConfigRequest(httpParser.GetParams(), httpResponse))
 			return false;
 	}
+	else if (httpParser.GetUrl().equals("/dynatracemonitoring"))
+	{
+		if (!requestHandler.HandleDynatraceMonitoringRequest(httpParser.GetParams(), httpResponse))
+			return false;
+	}
 	else if (httpParser.GetUrl().equals("/firmware"))
 	{
 		if (!requestHandler.HandleFirmwareRequest(httpParser.GetParams(), httpResponse))

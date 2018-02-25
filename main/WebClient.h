@@ -8,31 +8,30 @@
 #include "HttpResponseParser.h"
 #include "String.h"
 
-class WebClient {
-public:
+class WebClient
+{
+  public:
 	WebClient();
 	virtual ~WebClient();
-
 
 	/*
 	 * Prepares a HTTP request.
 	 * Use e.g. AddRequestHeader and Certificate methods to prepare request before actually executing with Execute()
 	 * @param pUrl
-	 * 			- if NULL, internal dynamic buffer will be used to store message content, which can be accessed with GetBody()
-	 * 			- if set, the message body data stream will be directly forwarded to the DownloadHandler implementation
 	 * @return false if invalid URL was provided
 	 */
-	bool Prepare(Url* pUrl);
+	bool Prepare(Url *pUrl);
 
+	/* @brief releases internal memory
+	*/
 	void Clear();
 
 	/*
 	 * Adds HTTP headers to the request - you should have called Prepare() beforehand
 	 * @param e.g. a header like "content-type: json/text"
 	 */
-	bool AddHttpHeader(String& sHeader);
-	bool AddHttpHeaderCStr(const char* header);
-
+	bool AddHttpHeader(String &sHeader);
+	bool AddHttpHeaderCStr(const char *header);
 
 	/*
 	 * Sets a DownloadHandler for retrieving large responses that do not fit in memory.
@@ -42,9 +41,7 @@ public:
 	 * 		- HTTP response status code
 	 * 		- 0 on error
 	 */
-	void SetDownloadHandler(DownAndUploadHandler* pDownloadHandler);
-
-
+	void SetDownloadHandler(DownAndUploadHandler *pDownloadHandler);
 
 	/*
 	 * executes HTTP(S) GET request
@@ -57,7 +54,6 @@ public:
 	 */
 	unsigned short HttpGet();
 
-
 	/*
 	 * executes HTTP(S) POST request
 	 * it stores response in internal dynamic memory in case no DownloadHandler is set
@@ -68,8 +64,7 @@ public:
 	 * 		- HTTP response status code
 	 * 		- 0 on error
 	 */
-	unsigned short HttpPost(const char* data, unsigned int size);
-
+	unsigned short HttpPost(const char *data, unsigned int size);
 
 	/*
 	 * executes HTTP(S) POST request
@@ -81,10 +76,9 @@ public:
 	 * 		- HTTP response status code
 	 * 		- 0 on error
 	 */
-	unsigned short HttpPost(String& sData);
+	unsigned short HttpPost(String &sData);
 
-
-		/*
+	/*
 	 * executes HTTP(S) PUT request
 	 * it stores response in internal dynamic memory in case no DownloadHandler is set
 	 * optionally call SetMaxResponseDataSize() in case the default memory allocation limit of 16kB is too small
@@ -94,9 +88,9 @@ public:
 	 * 		- HTTP response status code
 	 * 		- 0 on error
 	 */
-	unsigned short HttpPut(String& sData);
+	unsigned short HttpPut(String &sData);
 
-		/*
+	/*
 	 * executes HTTP(S) PUT request
 	 * it stores response in internal dynamic memory in case no DownloadHandler is set
 	 * optionally call SetMaxResponseDataSize() in case the default memory allocation limit of 16kB is too small
@@ -106,9 +100,9 @@ public:
 	 * 		- HTTP response status code
 	 * 		- 0 on error
 	 */
-	unsigned short HttpPut(const char* data, unsigned int size);
+	unsigned short HttpPut(const char *data, unsigned int size);
 
-		/*
+	/*
 	 * executes HTTP(S) DELETE request
 	 * it stores response in internal dynamic memory in case no DownloadHandler is set
 	 * optionally call SetMaxResponseDataSize() in case the default memory allocation limit of 16kB is too small
@@ -119,7 +113,7 @@ public:
 	 */
 	unsigned short HttpDelete();
 
-		/*
+	/*
 	 * executes HTTP(S) HEAD request
 	 * it stores response in internal dynamic memory in case no DownloadHandler is set
 	 * optionally call SetMaxResponseDataSize() in case the default memory allocation limit of 16kB is too small
@@ -130,7 +124,7 @@ public:
 	 */
 	unsigned short HttpHead();
 
-			/*
+	/*
 	 * executes HTTP(S) OPTIONS request
 	 * it stores response in internal dynamic memory in case no DownloadHandler is set
 	 * optionally call SetMaxResponseDataSize() in case the default memory allocation limit of 16kB is too small
@@ -141,8 +135,6 @@ public:
 	 */
 	unsigned short HttpOptions();
 
-
-
 	/*
 	 * in case the default max 16kB dynamic buffer limit is too small, you can increase the limit here.
 	 * @param maxBodyBufferSize
@@ -152,29 +144,27 @@ public:
 	 */
 	void SetMaxResponseDataSize(unsigned int maxResponseDataSize) { muMaxResponseDataSize = maxResponseDataSize; }
 
-
 	/*
 	 * get a reference to response data
 	 * use GetResponseData().data() for accessing binary data and GetResponseData().size() for its length
 	 */
-	String& GetResponseData() { return mHttpResponseParser.GetBody(); }
-
+	String &GetResponseData() { return mHttpResponseParser.GetBody(); }
 
 	/*
 	 * @returns the HTTP response content-type. returns an empty string of no content-type header was set
 	 */
-	String& GetContentType() { return mHttpResponseParser.GetContentType(); }
+	String &GetContentType() { return mHttpResponseParser.GetContentType(); }
 
 	//TODO: verify server certificates / CA
 
-private:
+  private:
 	HttpResponseParser mHttpResponseParser;
-	DownAndUploadHandler* mpDownloadHandler = NULL;
-	Url* mpUrl = NULL;
+	DownAndUploadHandler *mpDownloadHandler = NULL;
+	Url *mpUrl = NULL;
 	std::list<String> mlRequestHeaders;
-	const char* mpPostData = NULL;
+	const char *mpPostData = NULL;
 	unsigned int muPostDataSize = 0;
-	const char* msHttpMethod = NULL;
+	const char *msHttpMethod = NULL;
 
 	/*
 	 * Note: The site "https://www.howsmyssl.com/a/check" is useful to test and experiment with TLS layer and CA Certificates
@@ -183,9 +173,7 @@ private:
 	unsigned int muMaxResponseDataSize;
 	unsigned short HttpExecute();
 	unsigned short HttpExecuteWithRedirect();
-	void PrepareRequest(String& sRequest);
+	void PrepareRequest(String &sRequest);
 };
-
-
 
 #endif /* MAIN_WEBCLIENT_H_ */

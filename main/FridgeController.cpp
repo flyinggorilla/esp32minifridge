@@ -222,7 +222,7 @@ bool FridgeController::SetTargetTemperature(float targetTemperature)
 bool FridgeController::MeasureActualTemperature()
 {
     float temperature = ds18b20_convert_and_read_temp(&mDs18b20);
-    ESP_LOGI(LOGTAG, "Temperature: %.3f", temperature);
+    ESP_LOGD(LOGTAG, "Temperature: %.3f", temperature);
     if (temperature == DS18B20_INVALID_READING)  {
         return false;
     }

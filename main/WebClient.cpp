@@ -113,7 +113,8 @@ unsigned short WebClient::HttpPut(String& sData) {
 
 void WebClient::PrepareRequest(String& sRequest) {
 	sRequest.reserve(512);
-	sRequest = mpPostData ? "POST " : "GET ";
+	sRequest = msHttpMethod;
+	sRequest += " ";
 	sRequest += mpUrl->GetPath();
 	if (mpUrl->GetQueryParams().size()) {
 		sRequest += '?';
@@ -236,9 +237,9 @@ unsigned short WebClient::HttpExecute() {
 	String sRequest;
 	PrepareRequest(sRequest);
 
-
+//***************************** SET BACK TO LOGD!!!!!!!!!!!!!!!!!!!!!!!! ************************
 	// send HTTP request
-	ESP_LOGD(LOGTAG, "sRequest: %s", sRequest.c_str());
+	ESP_LOGI(LOGTAG, "sRequest: %s", sRequest.c_str());
 	if (write(webClientSocket, sRequest.c_str(), sRequest.length()) < 0) {
 		ESP_LOGE(LOGTAG, "... socket send failed");
 		close(webClientSocket);
@@ -398,7 +399,7 @@ unsigned short WebClient::HttpExecuteSecure() {
 
 	PrepareRequest(sRequest);
 
-	ESP_LOGD(LOGTAG, "Writing HTTP request... <%s>", sRequest.c_str());
+	ESP_LOGI(LOGTAG, "Writing HTTP request... <%s>", sRequest.c_str());
 
 	while ((ret = mbedtls_ssl_write(&ssl, (const unsigned char*)sRequest.c_str(), sRequest.length())) <= 0) {
 		if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {

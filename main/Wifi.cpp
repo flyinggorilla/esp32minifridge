@@ -14,6 +14,10 @@
 #include <lwip/netdb.h>
 #include <lwip/sockets.h>
 #include <tcpip_adapter.h>
+#include "lwip/err.h"
+
+#define SNTP_STARTUP_DELAY 10 * 1000 // wait 60 seconds for the ESP32 to get an IP address
+#include "apps/sntp/sntp.h"
 
 static char tag[] = "Wifi";
 
@@ -71,7 +75,7 @@ void Wifi::GetMac(__uint8_t uMac[6])
 	esp_wifi_get_mac(ESP_IF_WIFI_STA, uMac);
 }
 
-void Wifi::GetApInfo(int8_t& riRssi, uint8_t& ruChannel)
+void Wifi::GetApInfo(int8_t &riRssi, uint8_t &ruChannel)
 {
 	wifi_ap_record_t info;
 
@@ -80,7 +84,7 @@ void Wifi::GetApInfo(int8_t& riRssi, uint8_t& ruChannel)
 	ruChannel = info.primary;
 }
 
-void Wifi::StartAPMode(String& rsSsid, String& rsPass, String& rsHostname)
+void Wifi::StartAPMode(String &rsSsid, String &rsPass, String &rsHostname)
 {
 	msSsid = rsSsid;
 	msPass = rsPass;
@@ -88,7 +92,7 @@ void Wifi::StartAPMode(String& rsSsid, String& rsPass, String& rsHostname)
 	StartAP();
 }
 
-void Wifi::StartSTAMode(String& rsSsid, String& rsPass, String& rsHostname)
+void Wifi::StartSTAMode(String &rsSsid, String &rsPass, String &rsHostname)
 {
 	msSsid = rsSsid;
 	msPass = rsPass;
@@ -96,7 +100,7 @@ void Wifi::StartSTAMode(String& rsSsid, String& rsPass, String& rsHostname)
 	Connect();
 }
 
-void Wifi::StartSTAModeEnterprise(String& rsSsid, String& rsUser, String& rsPass, String& rsCA, String& rsHostname)
+void Wifi::StartSTAModeEnterprise(String &rsSsid, String &rsUser, String &rsPass, String &rsCA, String &rsHostname)
 {
 	msSsid = rsSsid;
 	msUser = rsUser;
@@ -113,7 +117,7 @@ void Wifi::Connect()
 	ESP_LOGD(tag, "%s", msCA.c_str());
 	ESP_LOGD(tag, "-----------------------");
 	char sHelp[20];
-	GetMac((__uint8_t*)sHelp);
+	GetMac((__uint8_t *)sHelp);
 	ESP_LOGD(tag, " macaddress: %x:%x:%x:%x:%x:%x", sHelp[0], sHelp[1], sHelp[2], sHelp[3], sHelp[4], sHelp[5]);
 	ESP_LOGD(tag, "-----------------------");
 
@@ -157,6 +161,28 @@ void Wifi::Connect()
 	esp_wifi_connect();
 }
 
+void Wifi::SetNtpServer(String ntpServer)
+{
+	msNtpServer = ntpServer;
+}
+
+uint64_t Wifi::GetEpochMillisecondsUTC()
+{
+	timeval tv;
+	gettimeofday(&tv, NULL);
+	uint64_t tmillis = (uint64_t)tv.tv_sec*1000 + (uint64_t)tv.tv_usec/1000;
+
+    //ESP_LOGI(tag, "################ TIME OF DAY: %lu:%lu = %llu", tv.tv_sec, tv.tv_usec, tmillis);
+
+	// dates in the range 2018 ... 2128 are treated as valid
+	if (tmillis < 1500000000000U || tmillis > 5000000000000U)
+	{
+		return 0;
+	}
+
+	return tmillis;
+}
+
 void Wifi::StartAP()
 {
 	ESP_LOGD(tag, "  StartAP(<%s>)", msSsid.c_str());
@@ -181,7 +207,7 @@ void Wifi::StartAP()
 	esp_wifi_start();
 }
 
-void Wifi::addDNSServer(String& ip)
+void Wifi::addDNSServer(String &ip)
 {
 	ip_addr_t dnsserver;
 	ESP_LOGD(tag, "Setting DNS[%d] to %s", dnsCount, ip.c_str());
@@ -190,7 +216,7 @@ void Wifi::addDNSServer(String& ip)
 	dnsCount++;
 }
 
-struct in_addr Wifi::getHostByName(String& hostName)
+struct in_addr Wifi::getHostByName(String &hostName)
 {
 	struct in_addr retAddr;
 	struct hostent *he = gethostbyname(hostName.c_str());
@@ -207,7 +233,7 @@ struct in_addr Wifi::getHostByName(String& hostName)
 	return retAddr;
 }
 
-void Wifi::setIPInfo(String& ip, String& gw, String& netmask)
+void Wifi::setIPInfo(String &ip, String &gw, String &netmask)
 {
 	this->ip = ip;
 	this->gw = gw;
@@ -261,6 +287,14 @@ esp_err_t Wifi::OnEvent(system_event_t *event)
 		tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip);
 		if (mpConfig)
 			mpConfig->muLastSTAIpAddress = ip.ip.addr;
+
+		if (msNtpServer.length() && !sntp_enabled())
+		{
+			ESP_LOGI(tag, "Initializing SNTP with server: %s", msNtpServer.c_str());
+			sntp_setoperatingmode(SNTP_OPMODE_POLL);
+			sntp_setservername(0, (char *)msNtpServer.c_str());
+			sntp_init();
+		}
 		break;
 	case SYSTEM_EVENT_STA_START:
 		ESP_LOGD(tag, "--- SYSTEM_EVENT_STA_START");

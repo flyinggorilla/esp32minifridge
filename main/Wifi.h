@@ -41,6 +41,20 @@ public:
 
 	esp_err_t OnEvent(system_event_t *event);
 
+	/*
+	 * @brief  Enables SNTP. Default auto-refresh is 60 minutes. 
+	 * 	       Note: this function must be called before StartSTAMode or StartSTAModeEnterprise
+	 *
+	 */
+	void SetNtpServer(String ntpServer);
+
+	/*
+	 * @brief   Unix Epoch time in UTC milliseconds
+	 * @return  0 when NTP has not provided a time in the range of 2018 .. 2127
+	 */
+	uint64_t GetEpochMillisecondsUTC();
+
+
 private:
 	void Connect();
 	void StartAP();
@@ -58,7 +72,8 @@ private:
 	String      msPass;
 	String      msUser;
 	String      msCA;
-	String 	 msHostname;
+	String 	    msHostname;
+	String 		msNtpServer;
 
 	__uint8_t 		muConnectedClients;
 	bool 			mbConnected;

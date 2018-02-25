@@ -100,7 +100,10 @@
 					<li>
 						<a href="#!pageserversettings" class="padded-list">Web Server Settings</a>
 					</li>
-					</div>
+					<li>
+						<a href="#!pagedynatracemonitoringsettings" class="padded-list">Dynatrace Monitoring</a>
+					</li>
+				</div>
 			</ul>
 
 
@@ -372,12 +375,50 @@
 		</div>
 	</pageapiedit>
 
+	<pagedynatracemonitoringsettings data-page="true">
+		<header class="header-bar">
+			<button class="btn icon icon-arrow-back pull-left" data-navigation="$previous-page"></button>
+			<div class="center">
+				<h1 class="title">Dynatrace Monitoring Settings</h1>
+			</div>
+		</header>
+		<div class="content">
+			<div class="input-wrapper list">
+				<form method='GET' action='/dynatracemonitoring'>
+					<div class="padded-full">
+						<p>
+							Connect this MiniFridge to Dynatrace Monitoring.<br />
+							Following metrics will then be visualized:
+							<ul>
+								Temperature actual/target<br>
+								Cooling ratio<br>
+								Power state<br>
+								TODO: errors, memory, logs, network, HTTP latency, web server, IP address, CPU, firmware version, reboots...
+							</ul>
+						</p>
+						<ul class="list">
+							<li class="">
+								<label class="checkbox">
+                                <input type="checkbox" class="" name="dtenabled" id="dtenabled">
+                                Enabled
+                                <span></span>
+                            </label>
+							</li>
+						</ul>
 
-	<!-- scripts -->
-	<!--  <script src="phonon-core.min.js"></script> -->
+						<input type="text" name="dtenvid" placeholder="Environment ID (tenant) or complete URL (like 'https://mine.dynatrace.com/e/<environment id>')" id="dtenvid" />
+						<input type="text" name="dtapitoken" placeholder="API Token" id="dtapitoken" />
+						<input type="number" min="10" max="300" placeholder="send data interval in sec (10..300, default = 60)" name="dtinterval" id="dtinterval" />
+					</div>
+					<div class="padded-full">
+						<button class="btn btn-submit fit-parent primary" type="submit">Apply settings.</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</pagedynatraceintegrationsettings>
 
-	<!-- our app config -->
-	<!-- <script src="app.js"></script> -->
+
 	<script>
 
 
@@ -784,6 +825,26 @@
 						document.getElementById('sslenabled').checked = (result.sslenabled == '1');
 						if (result.listenport > 0)
 							document.getElementById('listenport').value = result.listenport;
+					},
+					error: function (res, flagError, xhr) {
+						console.error(flagError);
+						console.log(res);
+					}
+				});
+			}
+
+			if (evt.detail.page == "pagedynatracemonitoringsettings") {
+				var req = phonon.ajax({
+					method: 'GET',
+					url: 'info',
+					//crossDomain: false,
+					dataType: 'text/json',
+					success: function (res, xhr) {
+						//console.log(xhr.response);
+						var result = JSON.parse(xhr.response);
+						document.getElementById('dtenabled').checked = (result.dtenabled == '1');
+						document.getElementById('dtenvid').value = result.dtenvid;
+						document.getElementById('dtinterval').value = result.dtinterval;
 					},
 					error: function (res, flagError, xhr) {
 						console.error(flagError);

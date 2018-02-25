@@ -27,7 +27,7 @@
 #include "Url.h"
 #include "WebClient.h"
 #include "Ota.h"
-#include "Sntp.h"
+#include "Monitoring.h"
 
 #define ONBOARDLED_GPIO GPIO_NUM_13  // GPIO13 on Adafruit Huzzah, GPIO5 on Sparkfun ESP32 Thing, 
 
@@ -38,8 +38,8 @@ Esp32MiniFridgeWebServer webServer;
 Esp32MiniFridge esp32minifridge;
 Storage storage;
 Wifi wifi;
-Sntp sntp;
 FridgeController fridgeController;
+Monitoring monitoring;
 
 
 
@@ -151,6 +151,7 @@ void Esp32MiniFridge::Start() {
 		// start DNS server to always redirect any domain to 192.168.4.1
 //		xTaskCreate(&task_function_dnsserver, "Task_DnsServer", 8192, this, 5, NULL);
 	} else {
+		wifi.SetNtpServer("pool.ntp.org");
 		if (mConfig.msSTAENTUser.length())
 			wifi.StartSTAModeEnterprise(mConfig.msSTASsid, mConfig.msSTAENTUser, mConfig.msSTAPass, mConfig.msSTAENTCA, mConfig.msHostname);
 		else {
@@ -164,19 +165,28 @@ void Esp32MiniFridge::Start() {
 		ESP_LOGI(LOGTAG, "AP hostname: %s", hostname);
 		ESP_LOGI(LOGTAG, "MDNS feature is disabled - no use found for it so far -- SSDP more interesting");
 		//wifi.StartMDNS();
-
-		sntp.Init("pool.ntp.org");
-
 	}
 
-	// while(!wifi.IsConnected()) {
-	//	ESP_LOGI(LOGTAG, "waiting for wifi");
-	//	vTaskDelay(1000/portTICK_PERIOD_MS);
-	// }
+	while (!wifi.IsConnected()){
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
+	}
 
+	monitoring.Start(mConfig.msDynatraceEnvironmentIdOrUrl, mConfig.msDynatraceApiToken, mConfig.msHostname);
 
-
-
+	while (true) {
+		TMeasurement measurement;
+		measurement.timestamp = wifi.GetEpochMillisecondsUTC();
+		if (measurement.timestamp) {
+			measurement.temperature = fridgeController.GetActualTemperature();
+			measurement.targettemp = fridgeController.GetTargetTemperature();
+			measurement.cooling = fridgeController.IsCooling();
+			measurement.power = fridgeController.IsPower();
+			
+			monitoring.Add(measurement);
+		}
+		vTaskDelay(10*1000 / portTICK_PERIOD_MS); // 10 second monitoring interval
+	}
+	
 }
 
 bool Esp32MiniFridge::StoreConfig() {

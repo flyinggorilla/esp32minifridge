@@ -25,8 +25,8 @@ extern FridgeController fridgeController;
 
 #define OTA_LATEST_FIRMWARE_JSON_URL "http://nuc:9999/version.json"   // testing with local go server
 #define OTA_LATEST_FIRMWARE_URL "http://nuc:9999/esp32minifridge.bin" // testing with local go server
-//#define OTA_LATEST_FIRMWARE_JSON_URL "https://raw.githubusercontent.com/Dynatrace/ufo-esp32/master/firmware/version.json"
-//#define OTA_LATEST_FIRMWARE_URL "https://raw.githubusercontent.com/Dynatrace/ufo-esp32/master/firmware/ufo-esp32.bin"
+//#define OTA_LATEST_FIRMWARE_JSON_URL "https://raw.githubusercontent.com/Dynatrace/esp32minifridge/master/firmware/version.json"
+//#define OTA_LATEST_FIRMWARE_URL "https://raw.githubusercontent.com/Dynatrace/esp32minifridge/master/firmware/esp32minifridge.bin"
 
 DynamicRequestHandler::DynamicRequestHandler()
 {
@@ -206,13 +206,56 @@ bool DynamicRequestHandler::HandleInfoRequest(std::list<TParam> &params, HttpRes
 	//sBody.printf("\"devicename\":\"%s\",", esp32minifridge.GetConfig().msUfoName.c_str());
 	sBody.printf("\"organization\":\"%s\",", esp32minifridge.GetConfig().msOrganization.c_str());
 	sBody.printf("\"department\":\"%s\",", esp32minifridge.GetConfig().msDepartment.c_str());
-	sBody.printf("\"location\":\"%s\"", esp32minifridge.GetConfig().msLocation.c_str());
+	sBody.printf("\"location\":\"%s\",", esp32minifridge.GetConfig().msLocation.c_str());
+	sBody.printf("\"dtenvid\":\"%s\",", esp32minifridge.GetConfig().msDynatraceEnvironmentIdOrUrl.c_str());
+	sBody.printf("\"dtinterval\":\"%u\",", esp32minifridge.GetConfig().miDynatraceMonitoringInterval);
+	sBody.printf("\"dtmonitoring\":\"%u\"", esp32minifridge.GetConfig().mbDynatraceMonitoring);
 	sBody += '}';
 
 	rResponse.AddHeader(HttpResponse::HeaderContentTypeJson);
 	rResponse.AddHeader(HttpResponse::HeaderNoCache);
 	rResponse.SetRetCode(200);
 	return rResponse.Send(sBody.c_str(), sBody.length());
+}
+
+
+bool DynamicRequestHandler::HandleDynatraceMonitoringRequest(std::list<TParam>& params, HttpResponse& rResponse){
+
+	String sEnvId;
+	String sApiToken;
+	bool bEnabled = false;
+	int iInterval = 0;
+
+	String sBody;
+
+	std::list<TParam>::iterator it = params.begin();
+	while (it != params.end()){
+		if ((*it).paramName == "dtenabled")
+			bEnabled = (*it).paramValue;
+		else if ((*it).paramName == "dtenvid")
+			sEnvId = (*it).paramValue;
+		else if ((*it).paramName == "dtapitoken")
+			sApiToken = (*it).paramValue;
+		else if ((*it).paramName == "dtinterval")
+			iInterval = (*it).paramValue.toInt();
+		it++;
+	}
+
+	esp32minifridge.GetConfig().mbDynatraceMonitoring = bEnabled;
+	esp32minifridge.GetConfig().msDynatraceEnvironmentIdOrUrl = sEnvId;
+	if (sApiToken.length())
+		esp32minifridge.GetConfig().msDynatraceApiToken = sApiToken;
+	esp32minifridge.GetConfig().miDynatraceMonitoringInterval = iInterval;
+
+	if (esp32minifridge.GetConfig().Write())
+		mbRestart = true;
+
+	ESP_LOGI(tag, "Dynatrace Monitoring Saved");
+
+	rResponse.AddHeader(HttpResponse::HeaderNoCache);
+	rResponse.AddHeader("Location: /#!pagedynatracemonitoringsettings");
+	rResponse.SetRetCode(302);
+	return rResponse.Send();
 }
 
 bool DynamicRequestHandler::HandleStorageRequest(std::list<TParam> &params, HttpResponse &rResponse)
