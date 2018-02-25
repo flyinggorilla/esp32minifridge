@@ -16,7 +16,9 @@
                 "C:\\github\\esp-idf\\components\\nvs_flash\\include",
                 "C:\\github\\esp-idf\\components\\driver",
                 "C:\\github\\esp-idf\\components\\soc\\esp32\\include\\soc",
-                "C:\\msys32\\opt\\xtensa-esp32-elf\\lib\\gcc\\xtensa-esp32-elf\\5.2.0\\include"
+                "C:\\github\\esp-idf\\components\\lwip\\include\\lwip\\apps\\sntp",
+                "C:\\msys32\\opt\\xtensa-esp32-elf\\lib\\gcc\\xtensa-esp32-elf\\5.2.0\\include",
+                "C:\\msys32\\opt\\xtensa-esp32-elf\\xtensa-esp32-elf\\include\\include"
             ],
             "defines": [
                 "_DEBUG",
@@ -38,7 +40,10 @@
                     "C:\\github\\esp-idf\\components\\driver\\include",
                     "C:\\github\\esp-idf\\components\\driver",
                     "C:\\github\\esp-idf\\components\\soc\\esp32\\include\\soc",
-                    "C:\\msys32\\opt\\xtensa-esp32-elf\\lib\\gcc\\xtensa-esp32-elf\\5.2.0\\include"
+                    "C:\\github\\esp-idf\\components\\lwip\\include\\lwip\\apps\\sntp",
+                    "C:\\msys32\\opt\\xtensa-esp32-elf\\lib\\gcc\\xtensa-esp32-elf\\5.2.0\\include",
+                    "C:\\msys32\\opt\\xtensa-esp32-elf\\xtensa-esp32-elf\\include\\include"
+
 
                 ],
                 "limitSymbolsToIncludedHeaders": true,

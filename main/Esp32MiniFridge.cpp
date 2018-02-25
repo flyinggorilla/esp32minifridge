@@ -27,6 +27,7 @@
 #include "Url.h"
 #include "WebClient.h"
 #include "Ota.h"
+#include "Sntp.h"
 
 #define ONBOARDLED_GPIO GPIO_NUM_13  // GPIO13 on Adafruit Huzzah, GPIO5 on Sparkfun ESP32 Thing, 
 
@@ -37,6 +38,7 @@ Esp32MiniFridgeWebServer webServer;
 Esp32MiniFridge esp32minifridge;
 Storage storage;
 Wifi wifi;
+Sntp sntp;
 FridgeController fridgeController;
 
 
@@ -162,6 +164,8 @@ void Esp32MiniFridge::Start() {
 		ESP_LOGI(LOGTAG, "AP hostname: %s", hostname);
 		ESP_LOGI(LOGTAG, "MDNS feature is disabled - no use found for it so far -- SSDP more interesting");
 		//wifi.StartMDNS();
+
+		sntp.Init("pool.ntp.org");
 
 	}
 

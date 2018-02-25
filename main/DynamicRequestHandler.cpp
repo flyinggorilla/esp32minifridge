@@ -121,12 +121,12 @@ bool DynamicRequestHandler::HandleApiRequest(std::list<TParam> &params, HttpResp
 		it++;
 	}
 	sBody = "{\r\n";
-	sBody += "\"power\":";
-	sBody += fridgeController.IsPower();
-	sBody += ",\r\n";
-	sBody += "\"cooling\":";
-	sBody += fridgeController.IsCooling();
-	sBody += ",\r\n";
+	sBody += "\"power\":\"";
+	sBody += fridgeController.IsPower() ? "on" : "off";
+	sBody += "\",\r\n";
+	sBody += "\"cooling\":\"";
+	sBody += fridgeController.IsCooling() ? "chilling" : "standby";
+	sBody += "\",\r\n";
 	sBody += "\"targettemperature\":";
 	sBody += fridgeController.GetTargetTemperature();
 	sBody += ",\r\n";		
@@ -135,6 +135,9 @@ bool DynamicRequestHandler::HandleApiRequest(std::list<TParam> &params, HttpResp
 	sBody += ",\r\n";		
 	sBody += "\"deadband\":";
 	sBody += fridgeController.GetDeadBand();
+	sBody += ",\r\n";
+	sBody += "\"coolingratio\":";
+	sBody += fridgeController.GetCoolingRatio();
 	sBody += "\r\n}";		
 
 

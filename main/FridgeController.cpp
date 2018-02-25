@@ -195,6 +195,13 @@ void FridgeController::Run()
             Fan(false);
         }
 
+        if (mbIsPower) {
+            ticksPowerOn++;
+        }
+        if (mbIsPeltier) {
+            ticksCooling++;
+        } 
+
         vTaskDelay(1000 / portTICK_PERIOD_MS); // 1 sec delay
     }
 };

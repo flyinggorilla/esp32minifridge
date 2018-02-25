@@ -40,6 +40,14 @@
 
 static const char LOGTAG[] = "WebClient";
 
+static const char* HTTPMETHOD_GET = "GET";
+static const char* HTTPMETHOD_POST = "POST";
+static const char* HTTPMETHOD_PUT = "PUT";
+static const char* HTTPMETHOD_DELETE = "DELETE";
+static const char* HTTPMETHOD_HEAD = "HEAD";
+static const char* HTTPMETHOD_OPTIONS = "OPTIONS";
+
+
 WebClient::WebClient() {
   muMaxResponseDataSize = DEFAULT_MAXRESPONSEDATASIZE;
 }
@@ -82,11 +90,25 @@ unsigned short WebClient::HttpPost(const char* data, unsigned int size) {
 
 	mpPostData = data;
 	muPostDataSize = size;
+	msHttpMethod = HTTPMETHOD_POST;
 	return HttpExecute();
 }
 
 unsigned short WebClient::HttpPost(String& sData) {
 	return HttpPost(sData.c_str(), sData.length());
+}
+
+unsigned short WebClient::HttpPut(const char* data, unsigned int size) {
+	if (!data) return 0;
+
+	mpPostData = data;
+	muPostDataSize = size;
+	msHttpMethod = HTTPMETHOD_PUT;
+	return HttpExecute();
+}
+
+unsigned short WebClient::HttpPut(String& sData) {
+	return HttpPut(sData.c_str(), sData.length());
 }
 
 void WebClient::PrepareRequest(String& sRequest) {
@@ -116,7 +138,7 @@ void WebClient::PrepareRequest(String& sRequest) {
 	sRequest += "User-Agent: esp32webclient/1.0 esp32\r\n\r\n";
 }
 
-unsigned short WebClient::HttpGet() {
+unsigned short WebClient::HttpExecuteWithRedirect() {
 	mpPostData = NULL;
 	muPostDataSize = 0;
 	unsigned short statuscode;
@@ -133,8 +155,29 @@ unsigned short WebClient::HttpGet() {
 		ESP_LOGD(LOGTAG, "Redirecting to: %s", mHttpResponseParser.GetRedirectLocation().c_str());
 	}
 	return 399; // max redirects exceeded
-
 }
+
+unsigned short WebClient::HttpGet() {
+	msHttpMethod = HTTPMETHOD_GET;
+	return HttpExecuteWithRedirect();
+}
+
+unsigned short WebClient::HttpDelete() {
+	msHttpMethod = HTTPMETHOD_DELETE;
+	return HttpExecuteWithRedirect();
+};
+
+unsigned short WebClient::HttpHead() {
+	msHttpMethod = HTTPMETHOD_HEAD;
+	return HttpExecuteWithRedirect();
+};
+
+unsigned short WebClient::HttpOptions() {
+	msHttpMethod = HTTPMETHOD_OPTIONS;
+	return HttpExecuteWithRedirect();
+};
+
+
 
 
 unsigned short WebClient::HttpExecute() {

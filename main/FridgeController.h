@@ -39,6 +39,8 @@ class FridgeController
 	bool IsError() { return mbIsError; };
 	bool IsCooling() { return mbIsPeltier; };
 
+	float GetCoolingRatio() { return ticksPowerOn ? ticksCooling * 100.0 / ticksPowerOn : 0; }
+
   private:
 	//SemaphoreHandle_t playerMutex;
 	float mfTargetTemperature = 20.0;
@@ -50,6 +52,9 @@ class FridgeController
 
 	void Fan(bool onoff);
 	void Peltier(bool onoff);
+
+	unsigned long ticksPowerOn = 0;
+	unsigned long ticksCooling = 0;
 
 	OneWireBus *mOwb = NULL;
 	DS18B20_Info mDs18b20;

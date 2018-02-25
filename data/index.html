@@ -56,6 +56,7 @@
 					<li class="padded-list">Target temperature:	<span id="targettemperature">-</span></li>
 					<li class="padded-list">Deadband: <span id="deadband">-</span></li>
 					<li class="padded-list">Cooling: <span id="iscooling">-</span></li>
+					<li class="padded-list">Cooling ratio: <span id="coolingratio">-</span>%</li>
 				</div>
 				<li class="divider">MiniFridge Configuration (REST calls)</li>
 				<div id='apis'>
@@ -534,6 +535,7 @@
 						document.getElementById('actualtemperature').innerHTML = result.actualtemperature;
 						document.getElementById('deadband').innerHTML = result.deadband;
 						document.getElementById('iscooling').innerHTML = result.cooling;
+						document.getElementById('coolingratio').innerHTML = result.coolingratio;
 					},
 
 					error: function (res, flagError, xhr) {
